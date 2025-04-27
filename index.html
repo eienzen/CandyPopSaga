@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://raw.githubusercontent.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self' https://raw.githubusercontent.com; img-src 'self' https://raw.githubusercontent.com data:; connect-src 'self' https://raw.githubusercontent.com https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data:; connect-src 'self' https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
   <title>Candy Pop Saga</title>
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/addons/p5.sound.min.js"></script>
   <style>
@@ -23,12 +23,12 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-overlay.png') repeat;
+      background: url('sounds/candy-overlay.png') repeat;
       opacity: 0.1;
       z-index: -1;
     }
     #header {
-      background: url('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-background.jpg') no-repeat center;
+      background: url('sounds/candy-background.jpg') no-repeat center;
       background-size: cover;
       height: 120px;
       color: #ffffff;
@@ -124,13 +124,13 @@
     }
 
     function preload() {
-      startSound = loadSound('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/start%20game%20sound-effect.mp3', () => console.log('Start sound loaded'), (err) => console.error('Failed to load start sound:', err));
-      victorySound = loadSound('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/victory-sound-101319.mp3', () => console.log('Victory sound loaded'), (err) => console.error('Failed to load victory sound:', err));
-      gameOverSound = loadSound('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/game-over-arcade-6435.mp3', () => console.log('Game over sound loaded'), (err) => console.error('Failed to load game over sound:', err));
-      candyTextures[0] = loadImage('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-red.png', () => console.log('Red candy loaded'), (err) => console.error('Failed to load red candy:', err));
-      candyTextures[1] = loadImage('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-green.png', () => console.log('Green candy loaded'), (err) => console.error('Failed to load green candy:', err));
-      candyTextures[2] = loadImage('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-blue.png', () => console.log('Blue candy loaded'), (err) => console.error('Failed to load blue candy:', err));
-      candyTextures[3] = loadImage('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => console.error('Failed to load yellow candy:', err));
+      startSound = loadSound('sounds/start game sound-effect.mp3', () => console.log('Start sound loaded'), (err) => console.error('Failed to load start sound:', err));
+      victorySound = loadSound('sounds/victory-sound-101319.mp3', () => console.log('Victory sound loaded'), (err) => console.error('Failed to load victory sound:', err));
+      gameOverSound = loadSound('sounds/game-over-arcade-6435.mp3', () => console.log('Game over sound loaded'), (err) => console.error('Failed to load game over sound:', err));
+      candyTextures[0] = loadImage('sounds/candy-red.png', () => console.log('Red candy loaded'), (err) => console.error('Failed to load red candy:', err));
+      candyTextures[1] = loadImage('sounds/candy-green.png', () => console.log('Green candy loaded'), (err) => console.error('Failed to load green candy:', err));
+      candyTextures[2] = loadImage('sounds/candy-blue.png', () => console.log('Blue candy loaded'), (err) => console.error('Failed to load blue candy:', err));
+      candyTextures[3] = loadImage('sounds/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => console.error('Failed to load yellow candy:', err));
     }
 
     function setup() {
@@ -349,7 +349,6 @@
     }
 
     function buyBooster() {
-      // PhonePe पेमेंट रिक्वेस्ट
       fetch('https://api.phonepe.com/v4/transaction', {
         method: 'POST',
         headers: {
@@ -362,9 +361,9 @@
           "merchantTransactionId": "TXN" + Date.now(),
           "merchantUserId": "USER" + referralCode,
           "amount": 1000, // ₹10 in paise
-          "redirectUrl": "https://eienzen.github.io/CandyPopSaga/callback",
+          "redirectUrl": "https://eienzen.github.io/CandyPopSaga/callback.html",
           "redirectMode": "REDIRECT",
-          "callbackUrl": "https://eienzen.github.io/CandyPopSaga/callback",
+          "callbackUrl": "https://eienzen.github.io/CandyPopSaga/callback.html",
           "mobileNumber": "9999999999",
           "paymentInstrument": {
             "type": "PAY_PAGE"
