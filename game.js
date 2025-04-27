@@ -61,11 +61,11 @@ function handleGameState() {
     targetScore += 500;
     moves = 20;
     score = 0;
-    victorySound.play();
+    if (victorySound) victorySound.play();
     alert('लेवल पूरा! अगला लेवल शुरू!');
   }
   if (moves <= 0 && score < targetScore) {
-    gameOverSound.play();
+    if (gameOverSound) gameOverSound.play();
     alert('गेम ओवर! फिर से शुरू करें।');
     resetGame();
   }
@@ -173,7 +173,7 @@ function resetGame() {
   targetScore = 1000;
   particles = [];
   initializeGame();
-  startSound.play();
+  if (startSound) startSound.play();
 }
 
 function generateReferralCode() {
