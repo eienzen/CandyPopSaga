@@ -86,11 +86,27 @@
       font-size: 16px;
       color: #ff3366;
     }
+    #submitReferral {
+      background-color: #ff3366;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .score-popup {
+      position: absolute;
+      color: #ff0;
+      font-size: 20px;
+      text-shadow: 1px 1px #000;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
   <div id="header">Candy Pop Saga</div>
-  <div id="referral">रेफरल कोड: <span id="refCode"></span> | दोस्तों को आमंत्रित करें और बोनस पॉइंट्स जीतें! <input type="text" id="referralInput" placeholder="रेफरल कोड डालें" onkeyup="checkReferral(event)"></div>
+  <div id="referral">रेफरल कोड: <span id="refCode"></span> | दोस्तों को आमंत्रित करें और बोनस पॉइंट्स जीतें! <input type="text" id="referralInput" placeholder="रेफरल कोड डालें"> <button id="submitReferral" onclick="checkReferral()">सबमिट करें</button></div>
   <div class="loading-text">Loading...</div>
   <button id="boosterButton" onclick="useBooster()">Clear Row Booster (500 Points)</button>
   <button id="buyBooster" onclick="buyBooster()">500 स्कोर वाला बूस्टर खरीदें (₹10)</button>
@@ -109,6 +125,7 @@
     let selectedCandy = null;
     let referralCode = generateReferralCode();
     let particles = [];
+    let scorePopups = [];
     let candyTextures = [];
     let isLoaded = false;
     let gridSize = 8;
@@ -122,20 +139,29 @@
     }
 
     function preload() {
-      candyTextures[0] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-red.png', () => console.log('Red candy loaded'), (err) => console.error('Failed to load red candy:', err));
-      candyTextures[1] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-green.png', () => console.log('Green candy loaded'), (err) => console.error('Failed to load green candy:', err));
-      candyTextures[2] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-blue.png', () => console.log('Blue candy loaded'), (err) => console.error('Failed to load blue candy:', err));
-      candyTextures[3] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => console.error('Failed to load yellow candy:', err));
+      candyTextures[0] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-red.png', () => console.log('Red candy loaded'), (err) => {
+        console.error('Failed to load red candy:', err);
+        candyTextures[0] = createGraphics(32, 32);
+        candyTextures[0].background(255, 0, 0);
+      });
+      candyTextures[1] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-green.png', () => console.log('Green candy loaded'), (err) => {
+        console.error('Failed to load green candy:', err);
+        candyTextures[1] = createGraphics(32, 32);
+        candyTextures[1].background(0, 255, 0);
+      });
+      candyTextures[2] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-blue.png', () => console.log('Blue candy loaded'), (err) => {
+        console.error('Failed to load blue candy:', err);
+        candyTextures[2] = createGraphics(32, 32);
+        candyTextures[2].background(0, 0, 255);
+      });
+      candyTextures[3] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => {
+        console.error('Failed to load yellow candy:', err);
+        candyTextures[3] = createGraphics(32, 32);
+        candyTextures[3].background(255, 255, 0);
+      });
     }
 
     function setup() {
-      if (!candyTextures[0] || !candyTextures[1] || !candyTextures[2] || !candyTextures[3]) {
-        console.error('One or more resources failed to load:', { candyTextures });
-        candyTextures[0] = createGraphics(32, 32); candyTextures[0].background(255, 0, 0);
-        candyTextures[1] = createGraphics(32, 32); candyTextures[1].background(0, 255, 0);
-        candyTextures[2] = createGraphics(32, 32); candyTextures[2].background(0, 0, 255);
-        candyTextures[3] = createGraphics(32, 32); candyTextures[3].background(255, 255, 0);
-      }
       createCanvas(450, 450, WEBGL);
       frameRate(30);
       textFont('Bubblegum Sans');
@@ -185,6 +211,16 @@
         p.y += p.vy;
         p.alpha -= 5;
         if (p.alpha <= 0) particles.splice(i, 1);
+      }
+      for (let i = scorePopups.length - 1; i >= 0; i--) {
+        let sp = scorePopups[i];
+        push();
+        translate((sp.x - gridSize / 2) * 50 + 25, (sp.y - gridSize / 2) * 50 + 25 - sp.offset, 0);
+        text(sp.text, 0, 0);
+        pop();
+        sp.offset += 1;
+        sp.alpha -= 5;
+        if (sp.alpha <= 0) scorePopups.splice(i, 1);
       }
     }
 
@@ -256,6 +292,9 @@
             createParticles(i, j);
             createParticles(i, j + 1);
             createParticles(i, j + 2);
+            createScorePopup(i, j, '+100');
+            createScorePopup(i, j + 1, '+100');
+            createScorePopup(i, j + 2, '+100');
           }
         }
       }
@@ -268,6 +307,9 @@
             createParticles(i, j);
             createParticles(i + 1, j);
             createParticles(i + 2, j);
+            createScorePopup(i, j, '+100');
+            createScorePopup(i + 1, j, '+100');
+            createScorePopup(i + 2, j, '+100');
           }
         }
       }
@@ -278,14 +320,25 @@
     }
 
     function createParticles(x, y) {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         particles.push({
           x: x,
           y: y,
+          vx: random(-1, 1),
           vy: random(-2, -1),
           alpha: 255
         });
       }
+    }
+
+    function createScorePopup(x, y, text) {
+      scorePopups.push({
+        x: x,
+        y: y,
+        text: text,
+        offset: 0,
+        alpha: 255
+      });
     }
 
     function clearMatches() {
@@ -317,6 +370,7 @@
       level = 1;
       targetScore = 1000;
       particles = [];
+      scorePopups = [];
       initializeGame();
     }
 
@@ -391,13 +445,20 @@
       });
     }
 
-    function checkReferral(event) {
-      if (event.key === 'Enter' && event.target.value === referralCode) {
-        score += 100;
-        localStorage.setItem('referredBy', referralCode);
-        alert('रेफरल सफल! 100 स्कोर जोड़ा गया।');
-        event.target.value = '';
+    function checkReferral() {
+      let input = document.getElementById('referralInput').value;
+      if (input === referralCode) {
+        if (!referredBy) {
+          score += 100;
+          localStorage.setItem('referredBy', referralCode);
+          alert('रेफरल सफल! 100 स्कोर जोड़ा गया।');
+        } else {
+          alert('आप पहले ही रेफरल का लाभ ले चुके हैं!');
+        }
+      } else {
+        alert('अमान्य रेफरल कोड!');
       }
+      document.getElementById('referralInput').value = '';
     }
 
     function draw() {
