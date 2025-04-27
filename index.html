@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline'; media-src 'self' https://raw.githubusercontent.com; img-src 'self' https://raw.githubusercontent.com; connect-src 'self' https://raw.githubusercontent.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://raw.githubusercontent.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self' https://raw.githubusercontent.com; img-src 'self' https://raw.githubusercontent.com data:; connect-src 'self' https://raw.githubusercontent.com https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
   <title>Candy Pop Saga</title>
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
@@ -64,7 +64,7 @@
       margin-top: 20px;
       text-shadow: 1px 1px #ffffff;
     }
-    #boosterButton {
+    #boosterButton, #buyBooster {
       position: absolute;
       top: 150px;
       right: 20px;
@@ -75,6 +75,7 @@
       border-radius: 5px;
       cursor: pointer;
       font-size: 18px;
+      margin-top: 10px;
     }
     #leaderboard {
       position: absolute;
@@ -90,9 +91,10 @@
 </head>
 <body>
   <div id="header">Candy Pop Saga</div>
-  <div id="referral">रेफरल कोड: <span id="refCode"></span> | दोस्तों को आमंत्रित करें और बोनस पॉइंट्स जीतें!</div>
+  <div id="referral">रेफरल कोड: <span id="refCode"></span> | दोस्तों को आमंत्रित करें और बोनस पॉइंट्स जीतें! <input type="text" id="referralInput" placeholder="रेफरल कोड डालें" onkeyup="checkReferral(event)"></div>
   <div class="loading-text">Loading...</div>
   <button id="boosterButton" onclick="useBooster()">Clear Row Booster (500 Points)</button>
+  <button id="buyBooster" onclick="buyBooster()">500 स्कोर वाला बूस्टर खरीदें (₹10)</button>
   <div id="leaderboard">
     <h3>लीडरबोर्ड</h3>
     <div id="leaderboardList"></div>
@@ -114,6 +116,12 @@
     let gridSize = 8;
     let candyTypes = 4;
     let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    let referredBy = localStorage.getItem('referredBy') || '';
+
+    if (referredBy) {
+      score += 100;
+      alert('रेफरल बोनस! 100 स्कोर जोड़ा गया।');
+    }
 
     function preload() {
       startSound = loadSound('https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/start%20game%20sound-effect.mp3', () => console.log('Start sound loaded'), (err) => console.error('Failed to load start sound:', err));
@@ -340,6 +348,43 @@
       }
     }
 
+    function buyBooster() {
+      // PhonePe पेमेंट रिक्वेस्ट
+      fetch('https://api.phonepe.com/v4/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-VERIFY': 'YOUR_SIGNATURE', // PhonePe API के लिए सिग्नेचर
+          'X-MERCHANT-ID': 'YOUR_MERCHANT_ID'
+        },
+        body: JSON.stringify({
+          "merchantId": "YOUR_MERCHANT_ID",
+          "merchantTransactionId": "TXN" + Date.now(),
+          "merchantUserId": "USER" + referralCode,
+          "amount": 1000, // ₹10 in paise
+          "redirectUrl": "https://eienzen.github.io/CandyPopSaga/callback",
+          "redirectMode": "REDIRECT",
+          "callbackUrl": "https://eienzen.github.io/CandyPopSaga/callback",
+          "mobileNumber": "9999999999",
+          "paymentInstrument": {
+            "type": "PAY_PAGE"
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = data.data.instrumentResponse.redirectInfo.url; // PhonePe पेमेंट पेज पर रीडायरेक्ट करें
+        } else {
+          alert('पेमेंट रिक्वेस्ट विफल!');
+        }
+      })
+      .catch(err => {
+        console.error('PhonePe पेमेंट त्रुटि:', err);
+        alert('पेमेंट रिक्वेस्ट में त्रुटि!');
+      });
+    }
+
     function addToLeaderboard(newScore) {
       leaderboard.push(newScore);
       leaderboard.sort((a, b) => b - a);
@@ -354,6 +399,15 @@
       leaderboard.forEach((score, index) => {
         list.innerHTML += `<div>${index + 1}. ${score}</div>`;
       });
+    }
+
+    function checkReferral(event) {
+      if (event.key === 'Enter' && event.target.value === referralCode) {
+        score += 100;
+        localStorage.setItem('referredBy', referralCode);
+        alert('रेफरल सफल! 100 स्कोर जोड़ा गया।');
+        event.target.value = '';
+      }
     }
 
     function draw() {
