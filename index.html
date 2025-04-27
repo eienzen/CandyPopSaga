@@ -52,6 +52,18 @@
       border-radius: 15px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
+    #stats {
+      background: rgba(255, 255, 255, 0.8);
+      color: #ff3366;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px auto;
+      width: 400px;
+      font-size: 18px;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
     #referral {
       margin: 20px auto;
       font-size: 24px;
@@ -107,6 +119,7 @@
     @media (max-width: 600px) {
       #header { font-size: 36px; height: 90px; }
       #referral { font-size: 18px; }
+      #stats { width: 300px; font-size: 14px; }
       #boosterButton, #buyBooster, #submitReferral { width: 150px; font-size: 14px; }
       canvas { margin: 10px auto; }
     }
@@ -118,6 +131,12 @@
   <div class="loading-text">Loading...</div>
   <button id="boosterButton" onclick="useBooster()">Clear Row Booster (500 Points)</button>
   <button id="buyBooster" onclick="buyBooster()">500 स्कोर वाला बूस्टर खरीदें (₹10)</button>
+  <div id="stats">
+    <span>स्कोर: <span id="scoreDisplay">0</span></span>
+    <span>चालें: <span id="movesDisplay">20</span></span>
+    <span>लेवल: <span id="levelDisplay">1</span></span>
+    <span>लक्ष्य: <span id="targetDisplay">1000</span></span>
+  </div>
   <div id="leaderboard">
     <h3>लीडरबोर्ड</h3>
     <div id="leaderboardList"></div>
@@ -179,6 +198,7 @@
       document.querySelector('.loading-text').style.display = 'none';
       isLoaded = true;
       updateLeaderboard();
+      updateStatsDisplay();
     }
 
     function initializeGame() {
@@ -193,7 +213,7 @@
         board[i] = [];
         for (let j = 0; j < gridSize; j++) {
           board[i][j] = floor(random(candyTypes));
-          candies.push({ x: i, y: j, type: board[i][j], scale: 1, matched: false });
+          candies.push({ x: i, y: j, type: board[i][j], scale: 1, matched: false, glow: 0 });
         }
       }
     }
@@ -202,20 +222,28 @@
       background(255, 220, 230);
       for (let candy of candies) {
         if (candy.matched) continue;
-        let x = (candy.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25;
-        let y = (candy.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25;
+        let x = candy.x * 50 + 25;
+        let y = candy.y * 50 + 25;
         push();
         translate(x, y);
         scale(candy.scale);
+        if (candy.glow > 0) {
+          noFill();
+          stroke(255, 255, 0, candy.glow);
+          strokeWeight(3);
+          ellipse(0, 0, 55, 55);
+          candy.glow -= 5;
+        }
         imageMode(CENTER);
         image(candyTextures[candy.type % 4], 0, 0, 50, 50);
         pop();
       }
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
-        fill(255, 255, 0, p.alpha);
+        fill(p.color.r, p.color.g, p.color.b, p.alpha);
         noStroke();
-        ellipse((p.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (p.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25, 10);
+        ellipse(p.x * 50 + 25, p.y * 50 + 25, 10);
+        p.x += p.vx;
         p.y += p.vy;
         p.alpha -= 10;
         if (p.alpha <= 0) particles.splice(i, 1);
@@ -224,14 +252,14 @@
         let sp = scorePopups[i];
         fill(255, 215, 0, sp.alpha);
         textSize(20);
-        text(sp.text, (sp.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (sp.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25 - sp.offset);
+        text(sp.text, sp.x * 50 + 25, sp.y * 50 + 25 - sp.offset);
         sp.offset += 1;
         sp.alpha -= 5;
         if (sp.alpha <= 0) scorePopups.splice(i, 1);
       }
       for (let i = crushEffects.length - 1; i >= 0; i--) {
         let ce = crushEffects[i];
-        fill(255, 0, 0, ce.alpha);
+        fill(ce.color.r, ce.color.g, ce.color.b, ce.alpha);
         noStroke();
         ellipse(ce.x, ce.y, ce.size);
         ce.alpha -= 10;
@@ -240,13 +268,11 @@
       }
     }
 
-    function displayStats() {
-      fill(255);
-      textSize(20);
-      text(`स्कोर: ${score}`, 10, 30);
-      text(`चालें: ${moves}`, 10, 60);
-      text(`लेवल: ${level}`, 10, 90);
-      text(`लक्ष्य: ${targetScore}`, 10, 120);
+    function updateStatsDisplay() {
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('movesDisplay').textContent = moves;
+      document.getElementById('levelDisplay').textContent = level;
+      document.getElementById('targetDisplay').textContent = targetScore;
     }
 
     function handleGameState() {
@@ -263,17 +289,20 @@
         alert('गेम ओवर! फिर से शुरू करें।');
         resetGame();
       }
+      updateStatsDisplay();
     }
 
     function handleMousePress() {
       let mx = mouseX;
       let my = mouseY;
-      let x = floor((mx - (width / 2 - gridSize * 25)) / 50 + gridSize / 2 - 0.5);
-      let y = floor((my - (height / 2 - gridSize * 25)) / 50 + gridSize / 2 - 0.5);
+      let x = floor(mx / 50);
+      let y = floor(my / 50);
       if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
         if (!selectedCandy) {
           selectedCandy = { x, y };
-          candies.find(c => c.x === x && c.y === y).scale = 1.2;
+          let candy = candies.find(c => c.x === x && c.y === y);
+          candy.scale = 1.2;
+          candy.glow = 255;
         } else {
           if (abs(selectedCandy.x - x) + abs(selectedCandy.y - y) === 1) {
             swapCandies(selectedCandy.x, selectedCandy.y, x, y);
@@ -304,15 +333,15 @@
             matches = true;
             score += 100;
             board[i][j] = board[i][j + 1] = board[i][j + 2] = -1;
-            createParticles(i, j);
-            createParticles(i, j + 1);
-            createParticles(i, j + 2);
+            createParticles(i, j, candyTextures[board[i][j] % 4]);
+            createParticles(i, j + 1, candyTextures[board[i][j] % 4]);
+            createParticles(i, j + 2, candyTextures[board[i][j] % 4]);
             createScorePopup(i, j, '+100');
             createScorePopup(i, j + 1, '+100');
             createScorePopup(i, j + 2, '+100');
-            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
-            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j + 1 - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
-            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j + 2 - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect(i * 50 + 25, j * 50 + 25);
+            createCrushEffect(i * 50 + 25, (j + 1) * 50 + 25);
+            createCrushEffect(i * 50 + 25, (j + 2) * 50 + 25);
           }
         }
       }
@@ -322,15 +351,15 @@
             matches = true;
             score += 100;
             board[i][j] = board[i + 1][j] = board[i + 2][j] = -1;
-            createParticles(i, j);
-            createParticles(i + 1, j);
-            createParticles(i + 2, j);
+            createParticles(i, j, candyTextures[board[i][j] % 4]);
+            createParticles(i + 1, j, candyTextures[board[i][j] % 4]);
+            createParticles(i + 2, j, candyTextures[board[i][j] % 4]);
             createScorePopup(i, j, '+100');
             createScorePopup(i + 1, j, '+100');
             createScorePopup(i + 2, j, '+100');
-            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
-            createCrushEffect((i + 1 - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
-            createCrushEffect((i + 2 - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect(i * 50 + 25, j * 50 + 25);
+            createCrushEffect((i + 1) * 50 + 25, j * 50 + 25);
+            createCrushEffect((i + 2) * 50 + 25, j * 50 + 25);
           }
         }
       }
@@ -340,14 +369,21 @@
       return matches;
     }
 
-    function createParticles(x, y) {
+    function createParticles(x, y, texture) {
+      let color;
+      if (texture === candyTextures[0]) color = { r: 255, g: 0, b: 0 };
+      else if (texture === candyTextures[1]) color = { r: 0, g: 255, b: 0 };
+      else if (texture === candyTextures[2]) color = { r: 0, g: 0, b: 255 };
+      else color = { r: 255, g: 255, b: 0 };
+      
       for (let i = 0; i < 15; i++) {
         particles.push({
           x: x,
           y: y,
-          vx: random(-2, 2),
-          vy: random(-3, -1),
-          alpha: 255
+          vx: random(-3, 3),
+          vy: random(-4, -1),
+          alpha: 255,
+          color: color
         });
       }
     }
@@ -367,7 +403,8 @@
         x: x,
         y: y,
         size: 10,
-        alpha: 255
+        alpha: 255,
+        color: { r: random(150, 255), g: random(50, 200), b: random(50, 200) }
       });
     }
 
@@ -389,7 +426,7 @@
       candies = [];
       for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
-          candies.push({ x: i, y: j, type: board[i][j], scale: 1, matched: board[i][j] === -1 });
+          candies.push({ x: i, y: j, type: board[i][j], scale: 1, matched: board[i][j] === -1, glow: 0 });
         }
       }
     }
@@ -415,8 +452,8 @@
         let row = floor(random(gridSize));
         for (let j = 0; j < gridSize; j++) {
           board[row][j] = -1;
-          createParticles(row, j);
-          createCrushEffect((row - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+          createParticles(row, j, candyTextures[board[row][j] % 4]);
+          createCrushEffect(row * 50 + 25, j * 50 + 25);
         }
         score += 200;
         clearMatches();
@@ -496,7 +533,6 @@
     function draw() {
       if (!isLoaded) return;
       drawBoard();
-      displayStats();
       handleGameState();
     }
 
