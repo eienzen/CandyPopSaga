@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data:; connect-src 'self' https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
   <title>Candy Pop Saga</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="https://eienzen.github.io/CandyPopSaga/favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/addons/p5.sound.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -23,12 +22,12 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('sounds/candy-overlay.png') repeat;
+      background: url('https://eienzen.github.io/CandyPopSaga/candy-overlay.png') repeat;
       opacity: 0.1;
       z-index: -1;
     }
     #header {
-      background: url('sounds/candy-background.jpg') no-repeat center;
+      background: url('https://eienzen.github.io/CandyPopSaga/candy-background.jpg') no-repeat center;
       background-size: cover;
       height: 120px;
       color: #ffffff;
@@ -110,7 +109,6 @@
     let selectedCandy = null;
     let referralCode = generateReferralCode();
     let particles = [];
-    let startSound, victorySound, gameOverSound;
     let candyTextures = [];
     let isLoaded = false;
     let gridSize = 8;
@@ -124,18 +122,15 @@
     }
 
     function preload() {
-      startSound = loadSound('sounds/start game sound-effect.mp3', () => console.log('Start sound loaded'), (err) => console.error('Failed to load start sound:', err));
-      victorySound = loadSound('sounds/victory-sound-101319.mp3', () => console.log('Victory sound loaded'), (err) => console.error('Failed to load victory sound:', err));
-      gameOverSound = loadSound('sounds/game-over-arcade-6435.mp3', () => console.log('Game over sound loaded'), (err) => console.error('Failed to load game over sound:', err));
-      candyTextures[0] = loadImage('sounds/candy-red.png', () => console.log('Red candy loaded'), (err) => console.error('Failed to load red candy:', err));
-      candyTextures[1] = loadImage('sounds/candy-green.png', () => console.log('Green candy loaded'), (err) => console.error('Failed to load green candy:', err));
-      candyTextures[2] = loadImage('sounds/candy-blue.png', () => console.log('Blue candy loaded'), (err) => console.error('Failed to load blue candy:', err));
-      candyTextures[3] = loadImage('sounds/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => console.error('Failed to load yellow candy:', err));
+      candyTextures[0] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-red.png', () => console.log('Red candy loaded'), (err) => console.error('Failed to load red candy:', err));
+      candyTextures[1] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-green.png', () => console.log('Green candy loaded'), (err) => console.error('Failed to load green candy:', err));
+      candyTextures[2] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-blue.png', () => console.log('Blue candy loaded'), (err) => console.error('Failed to load blue candy:', err));
+      candyTextures[3] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => console.error('Failed to load yellow candy:', err));
     }
 
     function setup() {
-      if (!startSound || !victorySound || !gameOverSound || !candyTextures[0] || !candyTextures[1] || !candyTextures[2] || !candyTextures[3]) {
-        console.error('One or more resources failed to load:', { startSound, victorySound, gameOverSound, candyTextures });
+      if (!candyTextures[0] || !candyTextures[1] || !candyTextures[2] || !candyTextures[3]) {
+        console.error('One or more resources failed to load:', { candyTextures });
         candyTextures[0] = createGraphics(32, 32); candyTextures[0].background(255, 0, 0);
         candyTextures[1] = createGraphics(32, 32); candyTextures[1].background(0, 255, 0);
         candyTextures[2] = createGraphics(32, 32); candyTextures[2].background(0, 0, 255);
@@ -145,7 +140,6 @@
       frameRate(30);
       textFont('Bubblegum Sans');
       initializeGame();
-      if (startSound) startSound.play();
       document.getElementById('refCode').innerText = referralCode;
       document.querySelector('.loading-text').style.display = 'none';
       isLoaded = true;
@@ -212,12 +206,10 @@
         targetScore += 500;
         moves = 20;
         score = 0;
-        if (victorySound) victorySound.play();
         alert('लेवल पूरा! अगला लेवल शुरू!');
         initializeGame();
       }
       if (moves <= 0 && score < targetScore) {
-        if (gameOverSound) gameOverSound.play();
         addToLeaderboard(score);
         alert('गेम ओवर! फिर से शुरू करें।');
         resetGame();
@@ -326,7 +318,6 @@
       targetScore = 1000;
       particles = [];
       initializeGame();
-      if (startSound) startSound.play();
     }
 
     function generateReferralCode() {
@@ -353,14 +344,14 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-VERIFY': 'YOUR_SIGNATURE', // PhonePe API के लिए सिग्नेचर
+          'X-VERIFY': 'YOUR_SIGNATURE',
           'X-MERCHANT-ID': 'YOUR_MERCHANT_ID'
         },
         body: JSON.stringify({
           "merchantId": "YOUR_MERCHANT_ID",
           "merchantTransactionId": "TXN" + Date.now(),
           "merchantUserId": "USER" + referralCode,
-          "amount": 1000, // ₹10 in paise
+          "amount": 1000,
           "redirectUrl": "https://eienzen.github.io/CandyPopSaga/callback.html",
           "redirectMode": "REDIRECT",
           "callbackUrl": "https://eienzen.github.io/CandyPopSaga/callback.html",
@@ -373,7 +364,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          window.location.href = data.data.instrumentResponse.redirectInfo.url; // PhonePe पेमेंट पेज पर रीडायरेक्ट करें
+          window.location.href = data.data.instrumentResponse.redirectInfo.url;
         } else {
           alert('पेमेंट रिक्वेस्ट विफल!');
         }
