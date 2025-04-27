@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data:; connect-src 'self' https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://api.phonepe.com; style-src 'self' 'unsafe-inline'; media-src 'self'; img-src 'self' data: https://eienzen.github.io; connect-src 'self' https://api.phonepe.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
   <title>Candy Pop Saga</title>
   <link rel="icon" type="image/x-icon" href="https://eienzen.github.io/CandyPopSaga/favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
@@ -14,6 +14,7 @@
       font-family: 'Bubblegum Sans', cursive;
       text-align: center;
       position: relative;
+      overflow: hidden;
     }
     body::before {
       content: '';
@@ -52,10 +53,11 @@
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
     #referral {
-      margin: 20px;
+      margin: 20px auto;
       font-size: 24px;
       color: #ff3366;
       text-shadow: 1px 1px #ffffff;
+      max-width: 600px;
     }
     .loading-text {
       color: #ff3366;
@@ -64,8 +66,8 @@
       text-shadow: 1px 1px #ffffff;
     }
     #boosterButton, #buyBooster, #submitReferral {
-      display: inline-block;
-      margin: 5px 0;
+      display: block;
+      margin: 10px auto;
       background-color: #ff3366;
       color: white;
       padding: 10px 20px;
@@ -73,6 +75,7 @@
       border-radius: 5px;
       cursor: pointer;
       font-size: 16px;
+      width: 200px;
     }
     #leaderboard {
       position: absolute;
@@ -84,6 +87,8 @@
       font-size: 16px;
       color: #ff3366;
       width: 150px;
+      max-height: 200px;
+      overflow-y: auto;
     }
     .score-popup {
       position: absolute;
@@ -98,6 +103,12 @@
       height: 50px;
       background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,255,0,0) 70%);
       pointer-events: none;
+    }
+    @media (max-width: 600px) {
+      #header { font-size: 36px; height: 90px; }
+      #referral { font-size: 18px; }
+      #boosterButton, #buyBooster, #submitReferral { width: 150px; font-size: 14px; }
+      canvas { margin: 10px auto; }
     }
   </style>
 </head>
