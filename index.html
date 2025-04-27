@@ -64,27 +64,19 @@
       text-shadow: 1px 1px #ffffff;
     }
     #boosterButton, #buyBooster, #submitReferral {
-      position: absolute;
-      top: 150px;
-      right: 20px;
+      display: inline-block;
+      margin: 5px 0;
       background-color: #ff3366;
       color: white;
       padding: 10px 20px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 18px;
-      margin-top: 10px;
-    }
-    #submitReferral {
-      top: 180px;
-    }
-    #buyBooster {
-      top: 210px;
+      font-size: 16px;
     }
     #leaderboard {
       position: absolute;
-      top: 250px;
+      top: 150px;
       right: 20px;
       background-color: rgba(255, 255, 255, 0.8);
       padding: 10px;
@@ -147,22 +139,22 @@
     function preload() {
       candyTextures[0] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-red.png', () => console.log('Red candy loaded'), (err) => {
         console.error('Failed to load red candy:', err);
-        candyTextures[0] = createGraphics(32, 32);
+        candyTextures[0] = createGraphics(50, 50);
         candyTextures[0].background(255, 0, 0);
       });
       candyTextures[1] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-green.png', () => console.log('Green candy loaded'), (err) => {
         console.error('Failed to load green candy:', err);
-        candyTextures[1] = createGraphics(32, 32);
+        candyTextures[1] = createGraphics(50, 50);
         candyTextures[1].background(0, 255, 0);
       });
       candyTextures[2] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-blue.png', () => console.log('Blue candy loaded'), (err) => {
         console.error('Failed to load blue candy:', err);
-        candyTextures[2] = createGraphics(32, 32);
+        candyTextures[2] = createGraphics(50, 50);
         candyTextures[2].background(0, 0, 255);
       });
       candyTextures[3] = loadImage('https://eienzen.github.io/CandyPopSaga/candy-yellow.png', () => console.log('Yellow candy loaded'), (err) => {
         console.error('Failed to load yellow candy:', err);
-        candyTextures[3] = createGraphics(32, 32);
+        candyTextures[3] = createGraphics(50, 50);
         candyTextures[3].background(255, 255, 0);
       });
     }
@@ -199,20 +191,20 @@
       background(255, 220, 230);
       for (let candy of candies) {
         if (candy.matched) continue;
-        let x = (candy.x - gridSize / 2) * 50 + 25;
-        let y = (candy.y - gridSize / 2) * 50 + 25;
+        let x = (candy.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25;
+        let y = (candy.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25;
         push();
         translate(x, y);
         scale(candy.scale);
         imageMode(CENTER);
-        image(candyTextures[candy.type % 4], 0, 0, 40, 40);
+        image(candyTextures[candy.type % 4], 0, 0, 50, 50);
         pop();
       }
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         fill(255, 255, 0, p.alpha);
         noStroke();
-        ellipse((p.x - gridSize / 2) * 50 + 25, (p.y - gridSize / 2) * 50 + 25, 10);
+        ellipse((p.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (p.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25, 10);
         p.y += p.vy;
         p.alpha -= 10;
         if (p.alpha <= 0) particles.splice(i, 1);
@@ -221,7 +213,7 @@
         let sp = scorePopups[i];
         fill(255, 215, 0, sp.alpha);
         textSize(20);
-        text(sp.text, (sp.x - gridSize / 2) * 50 + 25, (sp.y - gridSize / 2) * 50 + 25 - sp.offset);
+        text(sp.text, (sp.x - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (sp.y - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25 - sp.offset);
         sp.offset += 1;
         sp.alpha -= 5;
         if (sp.alpha <= 0) scorePopups.splice(i, 1);
@@ -262,9 +254,11 @@
       }
     }
 
-    function handleMousePress(mx, my) {
-      let x = floor((mx - width / 2) / 50 + gridSize / 2);
-      let y = floor((my - height / 2) / 50 + gridSize / 2);
+    function handleMousePress() {
+      let mx = mouseX;
+      let my = mouseY;
+      let x = floor((mx - (width / 2 - gridSize * 25)) / 50 + gridSize / 2 - 0.5);
+      let y = floor((my - (height / 2 - gridSize * 25)) / 50 + gridSize / 2 - 0.5);
       if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
         if (!selectedCandy) {
           selectedCandy = { x, y };
@@ -305,9 +299,9 @@
             createScorePopup(i, j, '+100');
             createScorePopup(i, j + 1, '+100');
             createScorePopup(i, j + 2, '+100');
-            createCrushEffect(i, j);
-            createCrushEffect(i, j + 1);
-            createCrushEffect(i, j + 2);
+            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j + 1 - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j + 2 - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
           }
         }
       }
@@ -323,9 +317,9 @@
             createScorePopup(i, j, '+100');
             createScorePopup(i + 1, j, '+100');
             createScorePopup(i + 2, j, '+100');
-            createCrushEffect(i, j);
-            createCrushEffect(i + 1, j);
-            createCrushEffect(i + 2, j);
+            createCrushEffect((i - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect((i + 1 - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
+            createCrushEffect((i + 2 - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
           }
         }
       }
@@ -359,8 +353,8 @@
 
     function createCrushEffect(x, y) {
       crushEffects.push({
-        x: (x - gridSize / 2) * 50 + 25,
-        y: (y - gridSize / 2) * 50 + 25,
+        x: x,
+        y: y,
         size: 10,
         alpha: 255
       });
@@ -411,7 +405,7 @@
         for (let j = 0; j < gridSize; j++) {
           board[row][j] = -1;
           createParticles(row, j);
-          createCrushEffect(row, j);
+          createCrushEffect((row - gridSize / 2 + 0.5) * 50 + width / 2 - gridSize * 25, (j - gridSize / 2 + 0.5) * 50 + height / 2 - gridSize * 25);
         }
         score += 200;
         clearMatches();
@@ -497,7 +491,7 @@
 
     function mousePressed() {
       if (!isLoaded) return;
-      handleMousePress(mouseX, mouseY);
+      handleMousePress();
     }
   </script>
 </body>
