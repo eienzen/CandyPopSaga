@@ -1,60 +1,52 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>पेमेंट कॉलबैक</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #ff99cc 0%, #66ccff 100%);
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #ff3366;
+      text-align: center;
+    }
+    .message {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+  </style>
 </head>
 <body>
+  <div class="message">
+    <h2>प्रतीक्षा करें...</h2>
+    <p id="status">पेमेंट स्थिति की जाँच हो रही है</p>
+  </div>
   <script>
     const params = new URLSearchParams(window.location.search);
     const transactionId = params.get('transactionId');
+    const statusElement = document.getElementById('status');
+
     if (transactionId) {
-      alert('पेमेंट सफल! 500 स्कोर जोड़ा गया।');
-      window.opener.score += 500; // मूल पेज पर स्कोर अपडेट करें
-      window.close();
+      try {
+        statusElement.textContent = 'पेमेंट सफल! 500 स्कोर जोड़ा गया।';
+        window.opener.score += 500; // मूल पेज पर स्कोर अपडेट करें
+        setTimeout(() => window.close(), 2000); // 2 सेकंड बाद विंडो बंद करें
+      } catch (e) {
+        statusElement.textContent = 'त्रुटि: स्कोर अपडेट करने में समस्या।';
+        console.error('स्कोर अपडेट त्रुटि:', e);
+        setTimeout(() => window.close(), 2000);
+      }
     } else {
-      alert('पेमेंट विफल!');
-      window.close();
+      statusElement.textContent = 'पेमेंट विफल! कृपया पुनः प्रयास करें।';
+      setTimeout(() => window.close(), 2000);
     }
   </script>
 </body>
