@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline'; media-src 'self' https://raw.githubusercontent.com; img-src 'self' https://raw.githubusercontent.com; connect-src 'self' https://raw.githubusercontent.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self'; media-src 'self' https://raw.githubusercontent.com; img-src 'self' https://raw.githubusercontent.com; connect-src 'self' https://raw.githubusercontent.com; worker-src 'self' blob: https://cdnjs.cloudflare.com;">
   <title>Candy Pop Saga</title>
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/eienzen/CandyPopSaga/main/sounds/favicon.ico">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/addons/p5.sound.min.js"></script>
   <script src="game.js"></script>
@@ -65,6 +65,13 @@
       margin-top: 20px;
       text-shadow: 1px 1px #ffffff;
     }
+    .leaderboard {
+      position: absolute;
+      top: 150px;
+      right: 20px;
+      color: #fff;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -72,6 +79,7 @@
   <div id="referral">रेफरल कोड: <span id="refCode"></span> | दोस्तों को आमंत्रित करें और बोनस पॉइंट्स जीतें!</div>
   <div class="loading-text">Loading...</div>
   <div id="footer">© 2025 Candy Pop Saga | खेलें और मज़े करें!</div>
+  <div class="leaderboard" id="leaderboard"></div>
   <script>
     let startSound, victorySound, gameOverSound;
     let candyTextures = [];
@@ -90,7 +98,6 @@
     function setup() {
       if (!startSound || !victorySound || !gameOverSound || !candyTextures[0] || !candyTextures[1] || !candyTextures[2] || !candyTextures[3]) {
         console.error('One or more resources failed to load:', { startSound, victorySound, gameOverSound, candyTextures });
-        // Fallback: Use default colors if images fail
         candyTextures[0] = createGraphics(32, 32); candyTextures[0].background(255, 0, 0);
         candyTextures[1] = createGraphics(32, 32); candyTextures[1].background(0, 255, 0);
         candyTextures[2] = createGraphics(32, 32); candyTextures[2].background(0, 0, 255);
