@@ -63,7 +63,7 @@
       margin-top: 20px;
       text-shadow: 1px 1px #ffffff;
     }
-    #boosterButton, #buyBooster {
+    #boosterButton, #buyBooster, #submitReferral {
       position: absolute;
       top: 150px;
       right: 20px;
@@ -76,30 +76,35 @@
       font-size: 18px;
       margin-top: 10px;
     }
+    #submitReferral {
+      top: 180px;
+    }
+    #buyBooster {
+      top: 210px;
+    }
     #leaderboard {
       position: absolute;
-      top: 200px;
+      top: 250px;
       right: 20px;
       background-color: rgba(255, 255, 255, 0.8);
       padding: 10px;
       border-radius: 5px;
       font-size: 16px;
       color: #ff3366;
-    }
-    #submitReferral {
-      background-color: #ff3366;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
+      width: 150px;
     }
     .score-popup {
       position: absolute;
       color: #ff0;
       font-size: 20px;
       text-shadow: 1px 1px #000;
+      pointer-events: none;
+    }
+    .crush-effect {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(255,255,0,0) 70%);
       pointer-events: none;
     }
   </style>
@@ -126,6 +131,7 @@
     let referralCode = generateReferralCode();
     let particles = [];
     let scorePopups = [];
+    let crushEffects = [];
     let candyTextures = [];
     let isLoaded = false;
     let gridSize = 8;
@@ -162,8 +168,8 @@
     }
 
     function setup() {
-      createCanvas(450, 450, WEBGL);
-      frameRate(30);
+      createCanvas(450, 450);
+      frameRate(60);
       textFont('Bubblegum Sans');
       initializeGame();
       document.getElementById('refCode').innerText = referralCode;
@@ -190,50 +196,54 @@
     }
 
     function drawBoard() {
+      background(255, 220, 230);
       for (let candy of candies) {
         if (candy.matched) continue;
+        let x = (candy.x - gridSize / 2) * 50 + 25;
+        let y = (candy.y - gridSize / 2) * 50 + 25;
         push();
-        translate((candy.x - gridSize / 2) * 50 + 25, (candy.y - gridSize / 2) * 50 + 25, 0);
+        translate(x, y);
         scale(candy.scale);
-        rotateX(frameCount * 0.01);
-        rotateY(frameCount * 0.01);
-        texture(candyTextures[candy.type % 4]);
-        sphere(20, 16, 16);
+        imageMode(CENTER);
+        image(candyTextures[candy.type % 4], 0, 0, 40, 40);
         pop();
       }
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
-        push();
-        translate((p.x - gridSize / 2) * 50 + 25, (p.y - gridSize / 2) * 50 + 25, 0);
         fill(255, 255, 0, p.alpha);
-        sphere(5);
-        pop();
+        noStroke();
+        ellipse((p.x - gridSize / 2) * 50 + 25, (p.y - gridSize / 2) * 50 + 25, 10);
         p.y += p.vy;
-        p.alpha -= 5;
+        p.alpha -= 10;
         if (p.alpha <= 0) particles.splice(i, 1);
       }
       for (let i = scorePopups.length - 1; i >= 0; i--) {
         let sp = scorePopups[i];
-        push();
-        translate((sp.x - gridSize / 2) * 50 + 25, (sp.y - gridSize / 2) * 50 + 25 - sp.offset, 0);
-        text(sp.text, 0, 0);
-        pop();
+        fill(255, 215, 0, sp.alpha);
+        textSize(20);
+        text(sp.text, (sp.x - gridSize / 2) * 50 + 25, (sp.y - gridSize / 2) * 50 + 25 - sp.offset);
         sp.offset += 1;
         sp.alpha -= 5;
         if (sp.alpha <= 0) scorePopups.splice(i, 1);
       }
+      for (let i = crushEffects.length - 1; i >= 0; i--) {
+        let ce = crushEffects[i];
+        fill(255, 0, 0, ce.alpha);
+        noStroke();
+        ellipse(ce.x, ce.y, ce.size);
+        ce.alpha -= 10;
+        ce.size += 5;
+        if (ce.alpha <= 0) crushEffects.splice(i, 1);
+      }
     }
 
     function displayStats() {
-      push();
-      translate(-200, -200, 0);
       fill(255);
       textSize(20);
       text(`स्कोर: ${score}`, 10, 30);
       text(`चालें: ${moves}`, 10, 60);
       text(`लेवल: ${level}`, 10, 90);
       text(`लक्ष्य: ${targetScore}`, 10, 120);
-      pop();
     }
 
     function handleGameState() {
@@ -295,6 +305,9 @@
             createScorePopup(i, j, '+100');
             createScorePopup(i, j + 1, '+100');
             createScorePopup(i, j + 2, '+100');
+            createCrushEffect(i, j);
+            createCrushEffect(i, j + 1);
+            createCrushEffect(i, j + 2);
           }
         }
       }
@@ -310,6 +323,9 @@
             createScorePopup(i, j, '+100');
             createScorePopup(i + 1, j, '+100');
             createScorePopup(i + 2, j, '+100');
+            createCrushEffect(i, j);
+            createCrushEffect(i + 1, j);
+            createCrushEffect(i + 2, j);
           }
         }
       }
@@ -320,12 +336,12 @@
     }
 
     function createParticles(x, y) {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 15; i++) {
         particles.push({
           x: x,
           y: y,
-          vx: random(-1, 1),
-          vy: random(-2, -1),
+          vx: random(-2, 2),
+          vy: random(-3, -1),
           alpha: 255
         });
       }
@@ -337,6 +353,15 @@
         y: y,
         text: text,
         offset: 0,
+        alpha: 255
+      });
+    }
+
+    function createCrushEffect(x, y) {
+      crushEffects.push({
+        x: (x - gridSize / 2) * 50 + 25,
+        y: (y - gridSize / 2) * 50 + 25,
+        size: 10,
         alpha: 255
       });
     }
@@ -371,6 +396,7 @@
       targetScore = 1000;
       particles = [];
       scorePopups = [];
+      crushEffects = [];
       initializeGame();
     }
 
@@ -385,6 +411,7 @@
         for (let j = 0; j < gridSize; j++) {
           board[row][j] = -1;
           createParticles(row, j);
+          createCrushEffect(row, j);
         }
         score += 200;
         clearMatches();
@@ -463,9 +490,6 @@
 
     function draw() {
       if (!isLoaded) return;
-      background(255, 220, 230);
-      ambientLight(150);
-      pointLight(255, 255, 255, 0, 0, 200);
       drawBoard();
       displayStats();
       handleGameState();
